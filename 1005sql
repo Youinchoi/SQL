@@ -1,0 +1,163 @@
+-- 1. 사원번호, 이름, 업무, 급여,  현재 급여에 15% 증가된 급여를(New Salary),  증가액(Increase)를 출력
+select empno, ename, job, sal, sal*1.15 as "new salary", 
+                                             (sal*1.15) - sal as "Increase" 
+from emp;
+?
+
+-- 2. 이름, 입사일, 입사일로부터 6개월 후에 돌아오는 월요일을 출력
+select ename, hiredate, next_day(add_months(hiredate,6),'월') as "six month later_월요일"
+from emp;
+?
+
+-- 3.이름, 입사일, 입사일로부터 현재까지의  년수, 급여, 입사일로부터 현재까지의 급여의 총계를 출력
+select ename, hiredate, sal, to_char(sysdate, 'yyyy') - to_char(hiredate, 'yyyy') as workyear,
+sal*(to_char(sysdate,'yyyy') - to_char(hiredate,'yyyy')) as sum_sal
+from emp;
+?
+
+-- 4.이름, 업무, 입사일, 입사한 요일을 출력
+select ename, job, hiredate, to_char (hiredate, 'day') as "요일"
+from emp;
+?
+
+-- 5. 업무별, 부서별 급여 합계와 인원수를 출력하되,  10번 부서를 제외하고 업무가 ‘SALESMAN’과 ‘MANAGER’만 출력한다.
+select job, deptno, sum(sal), count(*) 
+from emp
+where deptno != 10 and( job = 'SALESMAN' or job = 'MANAGER')
+group by job, deptno;
+
+
+-- 6. 업무별로 평균급여와 최대급여를 출력하되, 평균급여가 2000이상인 것만 출력하고 평균급여가 높은 순으로 정렬
+select job, ceil(avg(nvl(sal,0))), max (sal)
+from emp
+group by job
+having avg(nvl(sal,0))>=2000
+order by avg(nvl(sal,0)) desc;
+?
+
+-- 7. 같은 입사년도 별로 인원수를 출력
+select to_char (hiredate, 'yyyy') as "입사년도", count(*) as "인원수"
+from emp
+group by to_char(hiredate,'yyyy'); 
+?
+----------------------------------------------------------------
+
+-- 8. 5개씩 급여합계와 인원수를 출력 (rownum이용)
+select ceil(rownum/5), count(*), sum(sal)
+from emp
+group by ceil(rownum/5);
+?
+
+-- 9. 다음과 같이 출력
+select count (decode(job, 'CLERK', 1)) as clerk, count(decode(job, 'SALESMAN', 1)) as salesman,
+count(decode(job,'MANAGER', 1)) as manager
+from emp;
+
+-- 10
+
+----------------------------------------------------------------
+
+-- ** JOIN **
+
+-- 사원 테이블(emp)에 사원명과 부서 테이블(dept)에 그 사원의 부서명을 출력
+
+-- 내부 조인 ( 양쪽 연결고리가 전부 있을때 레코드 출력)
+select e.ename as ename, d.dname as dname, d.deptno as deptno
+from emp e, dept d 
+where e.deptno = d.deptno;
+
+-- 외부 조인 
+select e.ename as ename, d.dname as dname, d.deptno as deptno
+from emp e, dept d 
+where e.deptno = d.deptno(+);
+
+select e.ename as ename, d.dname as dname, d.deptno as deptno
+from emp e, dept d 
+where e.deptno(+) = d.deptno;
+
+select e.ename as ename, d.dname as dname, d.deptno as deptno
+from emp e, dept d 
+where e.deptno(+) = d.deptno(+); -- 에러 뜸 
+
+select e.ename as ename, d.dname as dname, d.deptno as deptno
+from emp e inner join dept d 
+on e.deptno = d.deptno;
+
+-- 가장 많이 쓰이는 패턴
+select e.ename as ename, d.dname as dname, d.deptno as deptno
+from emp e left outer join dept d 
+on e.deptno = d.deptno;
+
+select e.ename as ename, d.dname as dname, d.deptno as deptno
+from emp e right outer join dept d 
+on e.deptno = d.deptno;
+
+select e.ename as ename, d.dname as dname, d.deptno as deptno
+from emp e full outer join dept d 
+on e.deptno = d.deptno;
+
+-- 사원테이블각 사원의 매니저를 조회
+
+select e1.empno, e1.ename, e1.mgr, e2.empno, e2.ename
+from emp e1, emp e2
+where e1.mgr = e2. empno;
+
+-- 외부 조인
+select e1.empno as empno,  e1.ename as ename, e1.mgr as mgr, e2.empno as empno,  e2.ename as ename
+from emp e1 inner join emp e2
+on e1.mgr = e2. empno;
+
+select e1.empno as empno,  e1.ename as ename, e1.mgr as mgr, e2.empno as empno,  e2.ename as ename
+from emp e1, emp e2
+where e1.mgr = e2. empno(+);
+
+-- [집합]
+select empno, ename, job, deptno from emp where job = 'CLERK'
+    -- Smith / Adams / James / Miller
+    --union -- 합집합
+    --intersect -- 교집합
+    minus -- 차집합
+select empno, ename, job, deptno from emp where deptno = 10;
+    -- Clark / King ? Miller
+    
+----------------------------------------------------------------------------
+
+--1. EMP 테이블에서 사원번호, 이름, 업무, 부서번호와 DEPT 테이블에서 부서명, 근무지를 출력
+select e.empno as empno, e.ename as ename, e.job as job, e.deptno as deptno, d.dname as dname, d.loc as loc
+from emp e, dept d
+where e.deptno = d.deptno(+);
+?
+select e.empno, e.ename, e.job, e.deptno, d.dname, d.loc
+from emp e inner join dept d
+on e.deptno = d.deptno;
+
+
+--2. SALESMAN 사원만 사원번호, 이름, 급여, 부서명, 근무지를 출력
+select e.empno, e.ename, e.sal, d.dname, d.loc
+from emp e left outer join dept d
+on e.deptno = d.deptno
+where e.job = 'SALESMAN';
+
+
+--3. 보너스(comm)를 받는 사원에 대해 이름, 부서명, 위치를 출력
+select e.ename, d.dname, d.loc
+from emp e inner join dept d
+on e.deptno = d.deptno
+where e.comm > 0;
+
+
+--4. 부서별 부서명과 급여 합계를 출력
+select d.dname, sum(e.sal)
+from emp e full outer join dept d
+on e.deptno = d.deptno
+group by d.dname;
+
+
+-- 5. 업무가 ‘MANAGER’인 사원의 정보를 이름, 업무, 부서명, 근무지를 출력 
+select e.ename, e.job, d.dname, d.loc
+from emp e inner join dept d
+on e.deptno = d.deptno
+where e.job = 'MANAGER';
+
+
+

@@ -1,0 +1,22 @@
+-- 아래 스키마를 보고 평점이 3.0 이상인 학생들의 이름을 보여주는 SQL작성하시오
+-- <스키마>
+
+-- ※ 밑줄친 속성은 기본키(Primary Key)이며 ENROLL의 학번은 STUDENT의 학번을 참조하는 외래키(Foreign Key)이고, 
+-- ENROLL의 강좌번호는 CLASS의 강좌번호를 참조하는 외래키이다. 
+
+--  STUDENT(학번 , 학과, 이름) 
+-- CLASS(강좌번호, 시간, 강좌이름) 
+-- ENROLL(학번, 강좌번호, 학점)
+
+-- 공통된 건 [학번]이다
+
+select s.student_id, MIN(sname) -- 알파벳 순으로 출력하기 위함
+from student s, enroll e
+where s.student_id = e.student_id
+group by s.student_id
+having avg(e.grade) >= 3.0;
+
+
+
+
+
