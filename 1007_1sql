@@ -1,0 +1,112 @@
+-- 11. scott 또는 ward와 월급이 같은 사원의 정보를 이름, 업무, 급여를 출력
+
+
+select ename, job, sal
+from emp 
+where sal in (select sal from emp where ename in ('SCOTT', 'WARD'));
+
+?
+
+-- 12. chicago에서 근무하는 사원과 같은 업무를 하는 사원의 이름, 업무를 출력
+?
+select ename, job
+from emp
+where job in (select job from emp e, dept d where e.deptno = d.deptno and loc = 'CHICAGO');
+
+
+-- 13. 부서별로 월급이 평균 월급보다 높은 사원을 부서번호, 이름, 급여를 출력
+
+select deptno 부서번호, ename 이름, sal 급여
+from emp
+where sal > any(select avg(sal) from emp group by deptno);
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+
+CREATE OR REPLACE VIEW v_emp  AS
+           select empno, ename, deptno from emp;
+
+select * from v_emp;
+select * from emp;
+desc v_emp;
+
+insert into v_emp values (1000, '홍길동', 20); -- 가상테이블에 삽입해도 원본 테이블에 입력이 된다 
+insert into v_emp values (1000, '홍홍이', 20); -- 원테이블 pk조건에 걸려서 추가 불가
+insert into v_emp values (2000, '홍홍이', 90); -- 원테이블 fk조건에 걸려서 추가 불가
+
+CREATE OR REPLACE VIEW v_emp  AS
+           select empno, ename, deptno from emp
+           with read only;
+           
+insert into v_emp values (2000, '홍홍이', 20); -- 읽기 전용으로 만들어서 추가 불가 
+
+
+CREATE OR REPLACE VIEW v_emp_30  AS
+           select empno emp_no, ename name, sal salary from emp
+           where deptno = 30
+           with read only;
+           
+ select * from v_emp_30;
+        
+        
+Create or replace view v_emp_info as
+select e.empno empno, e.ename ename, d.dname dname 
+from emp e, dept d
+where e.deptno=d.deptno;
+           
+          
+
+insert into v_emp_info (empno, ename, dname) values (3333, '맹꽁이', 30);
+
+delete v_emp_info where empno = 7788;
+
+ select * from emp;
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+
+-- 부서별로 부서명, 최소급여, 최대급여, 부서의 평균급여를 포함하는 뷰를 생성하라
+
+Create or replace view v_dept_sum as
+select d.dname 부서명, min(e.sal) 최소급여, max(e.sal) 최대급여, avg(e.sal) 평균급여
+from emp e, dept d
+where e.deptno = d.deptno
+group by d.dname
+with read only;
+
+ select * from  v_dept_sum;
+ 
+ insert into emp(empno, ename, sal, deptno)
+ values (4444, '호이', 9900, 20);
+ 
+ 
+ -------------------------------------------------------------------------------------------------------------------------------------------
+
+
+CREATE  SEQUENCE  seq_temp;
+
+select seq_temp.nextval from dual;
+select seq_temp.currval from dual; -- nextval을 한번이라도 해야 실행 가능한 구문이다 
+
+-- 5000번 부터 10씩 증가하는 자동 증가수 (시퀀스)
+
+CREATE  SEQUENCE  seq_temp2
+increment by 10
+start with 5000;
+
+insert into emp (empno, ename) values ( seq_temp2.nextval, '박씨');
+
+select seq_temp2.currval from dual; 
+
+
+ -------------------------------------------------------------------------------------------------------------------------------------------
+ 
+ 
+desc emp;
+select empno, ename, job, rowid from emp;
+
+CREATE TABLE emp_copy2 as select * from emp;
+
+
